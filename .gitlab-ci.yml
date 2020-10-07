@@ -1,0 +1,99 @@
+default:
+  image: upmce-docker-local-v2.jfrog.io/myupmc/cicd:stable
+  services:
+    - docker:dind
+
+stages:
+  - install
+  - test
+  - build
+  - publish
+
+## yaml base defs ---> #####################################################
+
+.base:
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - node_modules
+      - out
+      - dist
+    expire_in: 1 week
+  tags:
+    - dso-runner
+
+.only_releases:
+  extends: .base
+  only:
+    # SemVer-compliant release tag (with no metadata)
+    #    e.g v1.0.0, 1.0.10, 10.02.1
+    - /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+
+### JOBS ---> #####################################################
+
+# install (all jobs)
+'install node_modules':
+  extends:
+    - .base
+  stage: install
+  script:
+    - npm i
+
+# test
+lint:
+  extends: .base
+  stage: test
+  script:
+    - npm run lint
+
+# test
+test:
+  extends: .base
+  stage: test
+  script:
+    - npm run test:ci
+
+build:
+  extends: .base
+  stage: build
+  script:
+    - npm run build
+
+publish-prerelease:
+  extends: .base
+  stage: publish
+  before_script:
+    - cat $npmrc > ~/.npmrc
+  script:
+    - npm version prerelease --preid $CI_COMMIT_SHORT_SHA --no-git-tag
+    - npm publish --tag $CI_COMMIT_SHORT_SHA
+  after_script:
+    - echo '' > ~/.npmrc
+
+publish:
+  extends: .only_releases
+  stage: publish
+  before_script:
+    - cat $npmrc > ~/.npmrc
+  script:
+    - npm publish
+  after_script:
+    - echo '' > ~/.npmrc
+
+
+
+
+
+# @myupmc:registry=https://upmce.jfrog.io/upmce/api/npm/myupmc
+# _auth=bXl1cG1jX3N2Y0B1cG1jLmVkdTpBS0NwNWNid1FxTkxwWHo1YmdkQldiQVU0dnV1WFM2cjk3Y1E2Sm9CVUdFWWRrN0ppQTgzUmRyNk4xNUQ4WVVKemQ3bWtFQzI3
+# username=myupmc_svc
+# email=myupmc_svc@upmc.edu
+# always-auth=true
+
+
+
+
+# curl -u myupmc_svc@upmc.edu:AKCp5cbwQqNLpXz5bgdBWbAU4vuuXS6r97cQ6JoBUGEYdk7JiA83Rdr6N15D8YUJzd7mkEC27 https://upmce.jfrog.io/upmce/api/npm/auth
+#     artifactory_user=myupmc_svc@upmc.edu
+# artifactory_password=AKCp5cbwQqNLpXz5bgdBWbAU4vuuXS6r97cQ6JoBUGEYdk7JiA83Rdr6N15D8YUJzd7mkEC27
+# artifactory_contextUrl=https://upmce.jfrog.io/upmce
