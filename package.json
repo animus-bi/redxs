@@ -1,33 +1,53 @@
 {
-  "name": "@myupmc/typescript-package-template",
-  "version": "0.0.0",
-  "description": "A template repo for publishing typescript packages to npm",
+  "name": "@animus-bi/redxs",
+  "version": "0.0.1-beta.4",
+  "description": "A super lightweight redux implementation, inspired by NGXS that can run in React, Angular, Express, or anywhere!",
+  "keywords": [
+    "redux",
+    "react",
+    "angular",
+    "unidirectional data",
+    "store",
+    "redux store",
+    "javascript",
+    "observable",
+    "rxjs",
+    "functional",
+    "ngxs",
+    "next js"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "lint": "eslint './src/**/*.{js,ts,tsx}'",
     "test": "ts-mocha -p tsconfig.json tests/**/*.test.ts",
     "test:ci": "nyc ts-mocha -p tsconfig.json tests/**/*.test.ts",
-    "test:watch": "ts-mocha -p tsconfig.json tests/**/*.test.ts --watch",
+    "test:watch": "ts-mocha -p tsconfig.json tests/**/*.test.ts,tests/*.test.ts --watch",
     "clean:dist": "node -e \"require('del').sync(['dist/**'])\"",
     "prebuild": "npm run clean:dist",
     "build": "tsc --listFiles",
     "watch": "tsc -w",
     "start": "npm link && nodemon",
-    "deploy": "npm-deploy-git-tag"
+    "version:branch": "npm version prerelease --preid $(git rev-parse --short=8 HEAD^) --no-git-tag",
+    "prepublish:branch": "npm run version:branch",
+    "publish:branch": "npm publish --tag $(git rev-parse --short=8 HEAD^) --access public",
+    "version:beta": "npm version prerelease --preid beta --no-git-tag",
+    "prepublish:beta": "npm run version:beta",
+    "publish:beta": "npm publish --tag beta --access public",
+    "buildAndPublishBranch": "npm run build && npm run publish:branch",
+    "buildAndPublishBeta": "npm run build && npm run publish:beta"
   },
   "repository": {
     "type": "git",
-    "url": "https://git.tdc.upmc.edu/myupmc/npm/typescript-package-template"
+    "url": "https://github.com/animus-bi/redxs"
   },
   "author": {
-    "name": "myupmc",
-    "email": "myupmc_svc@upmc.edu"
+    "name": "Animus BI",
+    "email": "animusmetrics@gmail.com"
   },
-  "license": "ISC",
-  "homepage": "https://git.tdc.upmc.edu/myupmc/npm/typescript-package-template",
+  "license": "MIT",
+  "homepage": "https://github.com/animus-bi/redxs#readme",
   "devDependencies": {
-    "@hutson/npm-deploy-git-tag": "^6.0.0",
     "@types/chai": "^4.2.13",
     "@types/expect": "^24.3.0",
     "@types/mocha": "^8.0.3",
@@ -51,5 +71,7 @@
   "files": [
     "dist/**/*"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "rxjs": "^6.6.3"
+  }
 }
