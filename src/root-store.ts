@@ -59,18 +59,29 @@ export abstract class RootStore {
     });
   }
 
+  private _noopStoreHandler() {
+    return new StoreHandler({ context: null } as any, () => {});
+  }
+
   private _initSubscriptionToDispatchedActions() {
     this._subscription.add(
       this._dispatchedActions$.pipe(
         tap(this._logger.logDispatchedActionStart()),
-        mergeMap((action) => 
-          forkJoin(
-            ((this._actionHandlerHash[ Action.getType(action) ] || []) as any).map((storeHandler: StoreHandler) => {
+        mergeMap((action) => {
+
+          if (!this._actionHandlerHash[ Action.getType(action) ]) {
+            return of(action);
+          }
+
+          return forkJoin(
+            ((this._actionHandlerHash[ Action.getType(action) ] || [this._noopStoreHandler()]) as any).map((storeHandler: StoreHandler) => {
+
               const result = storeHandler.callback(storeHandler.store.context, action);
               return isObservable(result) ? result: of(result);
+
             })
           )
-        ),
+        }),
       )
       .subscribe(this._logger.logDispatchedActionEnd())
     )

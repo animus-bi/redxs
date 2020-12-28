@@ -1,6 +1,6 @@
 {
   "name": "@animus-bi/redxs",
-  "version": "0.0.1-beta.4",
+  "version": "0.0.1-beta.8",
   "description": "A super lightweight redux implementation, inspired by NGXS that can run in React, Angular, Express, or anywhere!",
   "keywords": [
     "redux",
@@ -35,7 +35,7 @@
     "prepublish:beta": "npm run version:beta",
     "publish:beta": "npm publish --tag beta --access public",
     "buildAndPublishBranch": "npm run build && npm run publish:branch",
-    "buildAndPublishBeta": "npm run build && npm run publish:beta"
+    "buildAndPublishBeta": "npm run build && npm run publish:beta && npm dist-tag add @animus-bi/redxs@$(npm -s run env echo '$npm_package_version') latest"
   },
   "repository": {
     "type": "git",
