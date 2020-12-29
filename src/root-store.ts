@@ -1,5 +1,5 @@
-import { forkJoin, isObservable, Observable, of, Subject, Subscription } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { forkJoin, Observable, of, Subject, Subscription } from 'rxjs';
+import { /*catchError,*/ mergeMap, tap } from 'rxjs/operators';
 import { ActionHandlers } from './types/action-handlers';
 import { Action } from './action';
 import { xsStateContext } from './redxs-state-context';
@@ -11,7 +11,7 @@ import { RedXSLogger } from './redxs-logger';
 
 
 export abstract class RootStore {
-  private _logger: RedXSLogger | any;
+  private _logger: RedXSLogger = new RedXSLogger();
   private _actionHandlerHash: { [actionType: string]: ActionHandlers<any> } = {  };
   private _dispatchedActions$ = new Subject();
   private _subscription = new Subscription();
@@ -31,9 +31,9 @@ export abstract class RootStore {
   }
 
   private _setInitialState(store: Store<any>) {
-    this._logger.logDispatchedActionStart()({ type: `Adding Slice [${store.name}]` }, false);
+    this._logger.logDispatchedActionStart({ type: `Adding Slice [${store.name}]` }, xsStateContext.getState(), false);
     this._setStoreState(store, store.initialState);
-    this._logger.logDispatchedActionEnd()();
+    this._logger.logDispatchedActionEnd(xsStateContext.getState());
   }
 
   private _setSliceStateContext<T>(store: Store<any>) {
@@ -66,24 +66,20 @@ export abstract class RootStore {
   private _initSubscriptionToDispatchedActions() {
     this._subscription.add(
       this._dispatchedActions$.pipe(
-        tap(this._logger.logDispatchedActionStart()),
+        tap((action) => this._logger.logDispatchedActionStart(action, xsStateContext.getState())),
         mergeMap((action) => {
-
-          if (!this._actionHandlerHash[ Action.getType(action) ]) {
-            return of(action);
-          }
-
+          const storeHandler = ((this._actionHandlerHash[ Action.getType(action) ] || [this._noopStoreHandler()]) as any);
+          
           return forkJoin(
-            ((this._actionHandlerHash[ Action.getType(action) ] || [this._noopStoreHandler()]) as any).map((storeHandler: StoreHandler) => {
-
-              const result = storeHandler.callback(storeHandler.store.context, action);
-              return isObservable(result) ? result: of(result);
-
+            storeHandler.map((storeHandler: StoreHandler) => {
+              return of(storeHandler.callback(storeHandler.store.context, action) || {});
             })
           )
+
         }),
+        tap(() => this._logger.logDispatchedActionEnd(xsStateContext.getState())) // move to subscribe() ?
       )
-      .subscribe(this._logger.logDispatchedActionEnd())
+      .subscribe(() => {})
     )
   }
 
@@ -100,8 +96,8 @@ export abstract class RootStore {
     xsStateContext.init();
   }
 
-  dispatch(action: any): void {
-    return this._dispatchedActions$.next(action);
+  dispatch(action: any): Observable<void> {
+    return of(this._dispatchedActions$.next(action));
   }
 
   init(enableLogging: boolean = false) {

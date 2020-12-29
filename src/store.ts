@@ -14,7 +14,7 @@ export abstract class Store<T> {
   }
 
   get initialState() {
-    return (this.config || { initialState: {} }).initialState;
+    return { ...(this.config || { initialState: {} }).initialState };
   }
 
   get handlers(): ActionHandlersMap<T>  {
