@@ -6,7 +6,7 @@ const dupe = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 export class RedXSLogger {
 
-  private _console = {
+  private _noOpConsole = {
     log: (..._: any[]) => {},
     group: (_: string) => {},
     groupEnd: () => {},
@@ -14,11 +14,7 @@ export class RedXSLogger {
     info: (..._: any[]) => {}
   }
 
-  constructor(public isLogging: boolean = false) {
-    if (this.isLogging) {
-      this._console = console;
-    }
-  }
+  private _console: any = console;
     
   private _logPayload(action: any) {
     const payload = Action.withoutType(action);
@@ -35,20 +31,28 @@ export class RedXSLogger {
     this._console.log('%cnext state', greenLogStyle, dupe(nextState));
   }
 
-  private _startLogGroup(action: any, isAction: boolean) {
-    this._console.group(`${isAction ? 'action' : '' } ${Action.getType(action)}`);
+  private _startLogGroup(action: any, topic = 'action ') {
+    this._console.group(`${topic}${Action.getType(action)}`);
   }
 
   private _endLogGroup() {
     this._console.groupEnd();
   }
 
+  enableLogging(bool: boolean = true) {
+    this._console = bool ? console : this._noOpConsole;
+  }
+
+  disableLogging() {
+    this.enableLogging(false);
+  }
+
   logError(err: any) {
     this._console.error(err);
   }
 
-  logDispatchedActionStart(action: any, previousState: any, isAction: boolean = true) {
-    this._startLogGroup(action, isAction);
+  logDispatchedActionStart(action: any, previousState: any, topic = 'action ') {
+    this._startLogGroup(action, topic);
     this._logPayload(action);
     this._logPrevState(previousState);
   }
@@ -59,3 +63,6 @@ export class RedXSLogger {
   }
 
 }
+
+export const XSLogger = new RedXSLogger();
+export default XSLogger;

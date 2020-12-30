@@ -1,6 +1,12 @@
 import { Observable } from "rxjs";
+import { XSRootContext } from "./xs-root-context";
 
 export class StateContext<T> {
+
+  getRootState() {
+    return XSRootContext.getState();
+  }
+
   constructor(
     public getState: () => T,
     public dispatch: (...args: any) => Observable<void>,
