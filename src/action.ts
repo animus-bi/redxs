@@ -5,8 +5,9 @@ export class Action {
 
       ...instance,
 
-      type: instance.type || 
-        instance.constructor.Type || 
+      type: instance.Type ||
+        instance.type ||
+        instance.constructor.Type ||
         instance.constructor.type || 
         instance.constructor.name
 
