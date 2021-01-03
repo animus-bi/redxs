@@ -1,4 +1,4 @@
-import { forkJoin, Observable, of, Subject, Subscription } from "rxjs";
+import { forkJoin, isObservable, Observable, of, Subject, Subscription } from "rxjs";
 import { Store } from "./store";
 import { XSLogger } from "./xs-logger";
 import { StoreHandler } from "./store-handler";
@@ -43,12 +43,13 @@ class RedXSBus {
           const actionHandlers = this._getActionHandlers(Action.getType(action));
 
           return forkJoin(
-            actionHandlers.map((storeAndHandler: StoreHandler) => 
-              of(storeAndHandler.callback(
+            actionHandlers.map((storeAndHandler: StoreHandler) => {
+              const result = storeAndHandler.callback(
                 XSRootContext.getStateContext(storeAndHandler.store.name),
                 action
-              ))
-            )
+              );
+              return isObservable(result)? result: of(result);
+            })
           )
 
         }),
