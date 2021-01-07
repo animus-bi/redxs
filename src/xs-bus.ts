@@ -40,7 +40,7 @@ class RedXSBus {
         tap((action) => XSLogger.logDispatchedActionStart(action, XSRootContext.getState())),
         mergeMap((action) => {
 
-          const actionHandlers = this._getActionHandlers(Action.getType(action));
+          const actionHandlers = this._getActionHandlers(Action.getType(action)) as StoreHandler[];
 
           return forkJoin(
             actionHandlers.map((storeAndHandler: StoreHandler) => {

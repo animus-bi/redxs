@@ -7,6 +7,10 @@ export class StateContext<T> {
     return XSRootContext.getState();
   }
 
+  getSlice(name: string) {
+    return XSRootContext.getState()[name];
+  }
+
   constructor(
     public getState: () => T,
     public dispatch: (...args: any) => Observable<void>,

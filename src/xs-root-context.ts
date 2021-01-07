@@ -1,5 +1,5 @@
 import { Observable, of, ReplaySubject, Subject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { XSLogger } from './xs-logger';
 import { StateContext } from './state-context';
 import { Store } from './store';
@@ -78,12 +78,18 @@ class RedXSStateContext {
   }
 
   createRootSelector<Tt>(predicate: (state: Tt) => any) {
-    return this._state$.pipe(map((rootState: any) => predicate(rootState)));
+    return this._state$.pipe(
+      map((rootState: any) => predicate(rootState)),
+      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+    );
   }
 
   createSliceSelector<Tt>(sliceName: string, predicate: (state: Tt) => any) {
     this._subscribeToSlice(sliceName);
-    return this._slices[sliceName].pipe(map((sliceState: any) => predicate(sliceState)));
+    return this._slices[sliceName].pipe(
+      map((sliceState: any) => predicate(sliceState)),
+      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))
+    );
   }
 
   getState(): any {
