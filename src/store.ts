@@ -1,10 +1,10 @@
-import { Observable } from "rxjs";
+import { config, Observable } from "rxjs";
 import { StoreConfig } from "./store-config";
 import { XSBus } from "./xs-bus";
 import { XSRootContext } from "./xs-root-context";
 import { ActionHandlersMap } from "./types";
 import { CreateSelector, CreateSliceSelector, CreateStore } from "./creators";
-import { filter, map } from "rxjs/operators";
+import { map } from "rxjs/operators";
 
 export class Store<T> {
   
@@ -20,15 +20,16 @@ export class Store<T> {
     return { ...(this.config || { handlers: {} }).handlers || {} };
   }
 
-  effectState$ = (initialState: any) => 
-    this.state$.pipe(filter((state) => JSON.stringify(initialState) !== JSON.stringify(state)));
-
   get rootState$() {
     return XSRootContext.state$;
   }
 
   get state$() {
-    return XSRootContext.state$.pipe(map(root => root[this.name]));
+    return CreateSliceSelector(this.name, (state) => state);
+  }
+
+  select(predicate: (state: T) => any) {
+    return CreateSliceSelector(this.name, (state) => state.pipe(map(predicate)))
   }
 
   currentState() {
@@ -44,6 +45,8 @@ export class Store<T> {
   dispatch(action: any): Observable<void> {
     return Store.dispatch(action);
   }
+
+  select$ = CreateSelector;
 
   static dispatch(action: any): Observable<void> {
     return XSBus.dispatch(action);

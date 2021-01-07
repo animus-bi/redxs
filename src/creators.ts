@@ -19,6 +19,6 @@ export function CreateSelector(predicate: (rootState: any) => any): Observable<a
   return XSRootContext.createRootSelector(predicate);
 }
 
-export function CreateSliceSelector(sliceName: string, predicate: (rootState: any) => any) {
+export function CreateSliceSelector(sliceName: string, predicate: (sliceState: any) => any) {
   return XSRootContext.createSliceSelector(sliceName, predicate);
 }
