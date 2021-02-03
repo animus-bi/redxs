@@ -66,12 +66,20 @@ export class Store<T> {
     return Store.dispatch(action);
   }
 
+  onDispatch(action: any): Observable<any> {
+    return Store.onDispatch(action);
+  }
+
   select$(predicate: (state: T) => T): Observable<T> {
     return CreateSliceSelector(this.name, predicate);
   }
 
   static dispatch(action: any): Observable<void> {
     return XSBus.dispatch(action);
+  }
+
+  static onDispatch(action: any): Observable<any> {
+    return XSBus.onDispatch(action);
   }
 
   static Create = CreateStore;

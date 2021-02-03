@@ -4,7 +4,7 @@ import { XSLogger } from "./xs-logger";
 import { StoreHandler } from "./store-handler";
 import { ActionHandlers } from "./types";
 import { XSRootContext } from './xs-root-context';
-import { mergeMap, tap } from "rxjs/operators";
+import { filter, mergeMap, tap } from "rxjs/operators";
 import { Action } from './action';
 
 class RedXSBus {
@@ -71,6 +71,12 @@ class RedXSBus {
 
   dispatch(action: any): Observable<void> {
     return of(this._dispatchedActions$.next(action));
+  }
+
+  onDispatch(action: any): Observable<any> {
+    return this._dispatchedActions$.pipe(filter(
+      (dispatched: any) => (action.name === dispatched.constructor.name)
+    ));
   }
 
 }
