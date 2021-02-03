@@ -1,16 +1,26 @@
-import { forkJoin, isObservable, Observable, of, Subject, Subscription } from "rxjs";
-import { Store } from "./store";
-import { XSLogger } from "./xs-logger";
-import { StoreHandler } from "./store-handler";
-import { ActionHandlers } from "./types";
-import { XSRootContext } from './xs-root-context';
-import { mergeMap, tap } from "rxjs/operators";
+import {
+  forkJoin,
+  isObservable,
+  Observable,
+  of,
+  Subject,
+  Subscription
+} from 'rxjs';
+import { catchError, filter, mergeMap, tap } from 'rxjs/operators';
+
 import { Action } from './action';
+import { OnActionStatus } from './constants';
+import { Store } from './store';
+import { StoreHandler } from './store-handler';
+import { ActionHandlers, ActionStatus } from './types';
+import { XSLogger } from './xs-logger';
+import { XSRootContext } from './xs-root-context';
 
 class RedXSBus {
   
   private _actionHandlerHash: { [actionType: string]: ActionHandlers<any> } = {  };
   private _dispatchedActions$ = new Subject();
+  private _actionStatuses$ = new Subject<ActionStatus>();
   private _subscription = new Subscription();
   private _dispatchSubscribedTo = false;
 
@@ -39,19 +49,11 @@ class RedXSBus {
       this._dispatchedActions$.pipe(
         tap((action) => XSLogger.logDispatchedActionStart(action, XSRootContext.getState())),
         mergeMap((action) => {
-
           const actionHandlers = this._getActionHandlers(Action.getType(action)) as StoreHandler[];
 
-          return forkJoin(
-            actionHandlers.map((storeAndHandler: StoreHandler) => {
-              const result = storeAndHandler.callback(
-                XSRootContext.getStateContext(storeAndHandler.store.name),
-                action
-              );
-              return isObservable(result)? result: of(result);
-            })
-          )
-
+          return forkJoin(actionHandlers.map(
+            (storeHandler: StoreHandler) => this._handleDispatchedAction(action, storeHandler)
+          ));
         }),
         tap(() => XSLogger.logDispatchedActionEnd(XSRootContext.getState())) // move to subscribe() ?
       )
@@ -59,6 +61,32 @@ class RedXSBus {
     );
 
     this._dispatchSubscribedTo = true;
+  }
+
+  private _handleDispatchedAction(action: any, storeHandler: StoreHandler) {
+    let callbackResult: any,
+        callbackResultObservable: Observable<any>;
+    const stateContext = XSRootContext.getStateContext(storeHandler.store.name);
+
+    try {
+      callbackResult = storeHandler.callback(stateContext, action);
+    } catch(error) {
+      return of(this._notifyActionStatuses(action, OnActionStatus.OnError, error));
+    }
+
+    callbackResultObservable = isObservable(callbackResult)
+      ? callbackResult
+      : of(callbackResult);
+
+    return (callbackResultObservable as Observable<any>).pipe(
+      mergeMap(result => of(this._notifyActionStatuses(action, OnActionStatus.OnSuccess, result))),
+      catchError(error => of(this._notifyActionStatuses(action, OnActionStatus.OnError, error))),
+      mergeMap(result => of(this._notifyActionStatuses(action, OnActionStatus.OnComplete, result)))
+    );
+  }
+
+  private _notifyActionStatuses(action: any, status: string, callbackResult: any) {
+    this._actionStatuses$.next({ action, status, callbackResult });
   }
 
   constructor(){
@@ -70,7 +98,23 @@ class RedXSBus {
   }
 
   dispatch(action: any): Observable<void> {
+    this._notifyActionStatuses(action, OnActionStatus.OnDispatch, null);
+
     return of(this._dispatchedActions$.next(action));
+  }
+
+  onActionStatus(actionType: any, status: string): Observable<any> {
+    const statusMap = {
+      dispatch: OnActionStatus.OnDispatch,
+      success: OnActionStatus.OnSuccess,
+      error: OnActionStatus.OnError,
+      complete: OnActionStatus.OnComplete
+    };
+
+    return this._actionStatuses$.pipe(filter((actionStatus: ActionStatus) => {
+      return actionType.name === actionStatus.action.constructor.name
+        && statusMap[status] === actionStatus.status;
+    }));
   }
 
 }

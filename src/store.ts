@@ -63,15 +63,27 @@ export class Store<T> {
   }
 
   dispatch(action: any): Observable<void> {
-    return Store.dispatch(action);
+    return XSBus.dispatch(action);
+  }
+
+  ofActionDispatched(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'dispatch');
+  }
+
+  ofActionSuccessful(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'success');
+  }
+
+  ofActionErrored(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'error');
+  }
+
+  ofActionCompleted(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'complete');
   }
 
   select$(predicate: (state: T) => T): Observable<T> {
     return CreateSliceSelector(this.name, predicate);
-  }
-
-  static dispatch(action: any): Observable<void> {
-    return XSBus.dispatch(action);
   }
 
   static Create = CreateStore;
