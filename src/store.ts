@@ -66,8 +66,8 @@ export class Store<T> {
     return Store.dispatch(action);
   }
 
-  onDispatch(action: any): Observable<any> {
-    return Store.onDispatch(action);
+  onActionStatus(action: any, status: string): Observable<any> {
+    return Store.onActionStatus(action, status);
   }
 
   select$(predicate: (state: T) => T): Observable<T> {
@@ -78,8 +78,8 @@ export class Store<T> {
     return XSBus.dispatch(action);
   }
 
-  static onDispatch(action: any): Observable<any> {
-    return XSBus.onDispatch(action);
+  static onActionStatus(action: any, status: string) {
+    return XSBus.onActionStatus(action, status);
   }
 
   static Create = CreateStore;
