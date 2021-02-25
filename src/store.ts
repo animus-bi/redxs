@@ -5,6 +5,7 @@ import { XSRootContext } from "./xs-root-context";
 import { ActionHandlersMap } from "./types";
 import { CreateSelector, CreateSliceSelector, CreateStore } from "./creators";
 import { map } from "rxjs/operators";
+import { XSLogger } from "./xs-logger";
 
 
 export class Store<T> {
@@ -63,27 +64,33 @@ export class Store<T> {
   }
 
   dispatch(action: any): Observable<void> {
-    return Store.dispatch(action);
+    return XSBus.dispatch(action);
   }
 
-  onActionStatus(action: any, status: string): Observable<any> {
-    return Store.onActionStatus(action, status);
+  ofActionDispatched(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'dispatch');
+  }
+
+  ofActionSuccessful(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'success');
+  }
+
+  ofActionErrored(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'error');
+  }
+
+  ofActionCompleted(actionType: any) {
+    return XSBus.onActionStatus(actionType, 'complete');
   }
 
   select$(predicate: (state: T) => T): Observable<T> {
     return CreateSliceSelector(this.name, predicate);
   }
 
-  static dispatch(action: any): Observable<void> {
-    return XSBus.dispatch(action);
-  }
-
-  static onActionStatus(action: any, status: string) {
-    return XSBus.onActionStatus(action, status);
-  }
-
   static Create = CreateStore;
   static CreateSelector = CreateSelector;
   static CreateSliceSelector = CreateSliceSelector;
+  static Dispatch = XSBus.dispatch;
+  static Logger = XSLogger;
 
 }
