@@ -103,7 +103,7 @@ class RedXSBus {
     return of(this._dispatchedActions$.next(action));
   }
 
-  onActionStatus(action: any, status: string): Observable<any> {
+  onActionStatus(actionType: any, status: string): Observable<any> {
     const statusMap = {
       dispatch: OnActionStatus.OnDispatch,
       success: OnActionStatus.OnSuccess,
@@ -112,7 +112,7 @@ class RedXSBus {
     };
 
     return this._actionStatuses$.pipe(filter((actionStatus: ActionStatus) => {
-      return action.name === actionStatus.action.constructor.name
+      return actionType.name === actionStatus.action.constructor.name
         && statusMap[status] === actionStatus.status;
     }));
   }
