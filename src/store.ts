@@ -5,6 +5,7 @@ import { XSRootContext } from "./xs-root-context";
 import { ActionHandlersMap } from "./types";
 import { CreateSelector, CreateSliceSelector, CreateStore } from "./creators";
 import { map } from "rxjs/operators";
+import { XSLogger } from "./xs-logger";
 
 
 export class Store<T> {
@@ -89,5 +90,7 @@ export class Store<T> {
   static Create = CreateStore;
   static CreateSelector = CreateSelector;
   static CreateSliceSelector = CreateSliceSelector;
+  static Dispatch = XSBus.dispatch;
+  static Logger = XSLogger;
 
 }

@@ -4,6 +4,7 @@ import { XSLogger } from './xs-logger';
 import { StateContext } from './state-context';
 import { Store } from './store';
 
+// const _isEqual = require('lodash.isequal');
 
 class RedXSStateContext {
   private _state = {} as any;
@@ -80,7 +81,7 @@ class RedXSStateContext {
   createRootSelector<Tt>(predicate: (state: Tt) => any) {
     return this._state$.pipe(
       map((rootState: any) => predicate(rootState)),
-      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+      distinctUntilChanged() //(prev, curr) => _isEqual(prev) === _isEqual(curr)),
     );
   }
 
@@ -88,7 +89,7 @@ class RedXSStateContext {
     this._subscribeToSlice(sliceName);
     return this._slices[sliceName].pipe(
       map((sliceState: any) => predicate(sliceState)),
-      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))
+      distinctUntilChanged() //(prev, curr) => _isEqual(prev) === _isEqual(curr))
     );
   }
 
@@ -99,7 +100,7 @@ class RedXSStateContext {
   getStateContext<T>(sliceName: string) {
     return this._stateContexts[sliceName] || new StateContext<T>(
       () => ({ } as any),
-      (action?: any) => Store.dispatch(action),
+      (action?: any) => Store.Dispatch(action),
       (state: T) => this._setSliceState.bind(this)('nostore', state),
       (state: Partial<T>) => this._patchSliceState.bind(this)('nostore', state),
     )

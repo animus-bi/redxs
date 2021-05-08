@@ -1,8 +1,9 @@
 import { Action } from './action';
 
-const grayLogStyle = 'color:  #979797; font-weight: 700';
+const _cloneDeep = require('lodash.clonedeep');
+const grayLogStyle = 'color: #979797; font-weight: 700';
 const greenLogStyle = 'color: #02a102; font-weight: 700';
-const dupe = (obj: any) => JSON.parse(JSON.stringify(obj));
+const dupe = (obj: any) => _cloneDeep(obj);
 
 export class RedXSLogger {
 

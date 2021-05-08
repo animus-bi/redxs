@@ -1,6 +1,6 @@
 {
   "name": "@animus-bi/redxs",
-  "version": "0.0.1-beta.20",
+  "version": "0.0.1-beta.24",
   "description": "A super lightweight redux implementation, inspired by NGXS that can run in React, Angular, Express, or anywhere!",
   "keywords": [
     "redux",
@@ -79,6 +79,8 @@
     "dist/**/*"
   ],
   "dependencies": {
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.isequal": "^4.5.0",
     "rxjs": "^6.6.3"
   }
 }
