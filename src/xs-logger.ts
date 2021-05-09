@@ -15,7 +15,7 @@ export class RedXSLogger {
     info: (..._: any[]) => {}
   }
 
-  private _console: any = console;
+  private _console: any = this._noOpConsole;
     
   private _logPayload(action: any) {
     const payload = Action.withoutType(action);

@@ -1,6 +1,6 @@
 {
   "name": "@animus-bi/redxs",
-  "version": "0.0.1-beta.24",
+  "version": "0.0.1-beta.26",
   "description": "A super lightweight redux implementation, inspired by NGXS that can run in React, Angular, Express, or anywhere!",
   "keywords": [
     "redux",
