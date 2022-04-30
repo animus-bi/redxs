@@ -6,9 +6,6 @@
 > - Very easy to use and grasp
 > &nbsp;
 
-## BETA
-- Be advised - this package is still in beta.
-
 ## Concepts
 
 - RedXS is basically just an async event bus. Actions are dispatched, which trigger any number of handlers. Handlers are attached via your store definition according to the Action `Type` they are attached to (No more large switch statements in reducers!!). Handlers given 2 parameters when executed: 
